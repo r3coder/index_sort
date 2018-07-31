@@ -2,22 +2,58 @@
 #include <random>
 #include <algorithm>
 #include <vector>
-
+#include <math.h>
 #include <sys/time.h>
 #include <iomanip>
 #include <chrono>
-constexpr int DATA_NUM = 100;
-constexpr int TEST_NUM = 1;
+constexpr int DATA_NUM = 1000000;
+constexpr int TEST_NUM = 30;
 
 void printTime(long time){
 	std::cout <<(time)/1000000 << ".";
 	std::cout << std::setw(6) << std::setfill('0') << (time)%1000000;
 }
 
+int index_sort_v(int* start, int* end){
+	int* it = start;
+	int len = 0;
+	int max = *it; int min = *it;
+
+	while(it!=end){
+		if(*it>max){max = *it;}
+		if(*it<min){min = *it;}
+		it++;
+		len++;
+	}
+	int div = (int)std::sqrt(DATA_NUM);
+	std::vector<int> data[div];
+	for(int i=0;i<div;i++){
+		data[i].reserve(DATA_NUM);
+	}
+	it = start;
+	while(it!=end){
+		//std::cout << "it " << (*it) << "	 max-min " << (max-min+1) << "	 ans:" << ((float)*it/(max-min+1))*len << std::endl;
+		float target = ((float)*it/(max-min+1));
+		data[(int)(target*div)].push_back(*it);
+		it++;
+	}
+	//std::cout << "put complete" << std::endl;
+	it = start;
+	for(int i=0;i<div;i++){
+		std::sort(data[i].begin(),data[i].end());
+		for(int j=0;j<data[i].size();j++){
+			*it = data[i].at(j);
+			it++;
+			//std::cout<<data[i].at(j)<<"\t";
+		}
+		//std::cout<<std::endl;
+	}
+}
 int index_sort(int* start, int* end){
 	int* it = start;
 	int len = 0;
 	int max = *it; int min = *it;
+
 	while(it!=end){
 		if(*it>max){max = *it;}
 		if(*it<min){min = *it;}
@@ -90,11 +126,11 @@ int main(){
 		}*/
 
 		for (int i=0;i<DATA_NUM;i++){
-			data_index[i]=rand()%30;
+			data_index[i]=rand()%100000;
 			data_quick[i]=data_index[i];
 		}
 
-		for (int i=0;i<DATA_NUM;i++){std::cout << data_index[i] << "\t";}std::cout << std::endl;
+		//for (int i=0;i<DATA_NUM;i++){std::cout << data_index[i] << "\t";}std::cout << std::endl;
 	 
 		//quicksort
 		gettimeofday(&t,NULL);
@@ -109,7 +145,8 @@ int main(){
 		//indexsort
 		gettimeofday(&t,NULL);
 		t_start = (long)t.tv_sec*1000000+(long)t.tv_usec;
-		index_sort(data_index,data_index+DATA_NUM);
+		//index_sort(data_index,data_index+DATA_NUM);
+		index_sort_v(data_index,data_index+DATA_NUM);
 		gettimeofday(&t,NULL);
 		t_end = (long)t.tv_sec*1000000+(long)t.tv_usec;
 		index_total = index_total + t_end - t_start;
@@ -133,6 +170,7 @@ int main(){
 	index_avg = index_total / TEST_NUM;
 
 	std::cout << "******************************"<<std::endl;
+	std::cout << "Data Size : " << DATA_NUM << std::endl;
 	std::cout << "quicksort:" << std::endl;
 	std::cout << "total execution time : "<<(quick_total)/1000000 << ".";
 	std::cout << std::setw(6) << std::setfill('0') << (quick_total)%1000000<<std::endl;
